@@ -166,7 +166,7 @@ private final class TweakDiskPersistency {
 			case .CGFloat: return anyObject as? CGFloat
 			case .Double: return anyObject as? Double
 			case .UIColor: return anyObject as? UIColor
-			case .StringList: return anyObject as? StringOption
+			case .StringList: return (anyObject as? String).flatMap(StringOption.init)
 			}
 		}
 	}
