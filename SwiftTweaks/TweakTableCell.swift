@@ -66,6 +66,10 @@ internal final class TweakTableCell: UITableViewCell {
 		return imageView
 	}()
 
+	let tweakDateFormatter: DateFormatter = {
+		return TweakDateFormatter.dateFormatter()
+	}()
+	
 	override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
 		super.init(style: .value1, reuseIdentifier: reuseIdentifier)
 
@@ -89,6 +93,7 @@ internal final class TweakTableCell: UITableViewCell {
 	private static let numberTextWidthFraction: CGFloat = 0.25 // The fraction of the cell's width used for the text field
 	private static let colorTextWidthFraction: CGFloat = 0.30
 	private static let stringTextWidthFraction: CGFloat = 0.60
+	private static let dateTextWidthFraction: CGFloat = 0.60
 	private static let stringListValueLeadingPadding: CGFloat = 10 // Leading padding before the string list's value text field
 	private static let stringListTitleMaxWidthFraction: CGFloat = 0.7 // Maximum percent of the available space that the title can use when truncating the value
 	private static let horizontalPadding: CGFloat = 6 // Horiz. separation between stepper and text field
@@ -194,6 +199,17 @@ internal final class TweakTableCell: UITableViewCell {
 
 		case .action:
 			accessory.bounds = .zero
+			
+		case .date:
+			let textFrame = CGRect(
+				origin: .zero,
+				size: CGSize(
+					width: bounds.width * TweakTableCell.dateTextWidthFraction,
+					height: bounds.height
+				)
+			).integral
+			textField.frame = textFrame
+			accessory.bounds = textField.bounds
 		}
 	}
 	
@@ -302,6 +318,13 @@ internal final class TweakTableCell: UITableViewCell {
 			colorChit.isHidden = true
 			disclosureArrow.isHidden = false
 			selectionStyle = .default
+		case .date:
+			switchControl.isHidden = true
+			textField.isHidden = false
+			stepperControl.isHidden = true
+			colorChit.isHidden = true
+			disclosureArrow.isHidden = true
+			selectionStyle = .default
 		}
 
 		// For action tweaks, we tint the cell's text label
@@ -353,6 +376,10 @@ internal final class TweakTableCell: UITableViewCell {
 			textFieldEnabled = false
 		case .action:
 			textFieldEnabled = false
+			
+		case let .date(value: value, _, _, _):
+			textField.text = tweakDateFormatter.string(from: value)
+			textFieldEnabled = false
 		}
 
 		textFieldEnabled = textFieldEnabled && !self.isInFloatingTweakGroupWindow
@@ -398,8 +425,18 @@ internal final class TweakTableCell: UITableViewCell {
 		case let .doubleTweak(_, defaultValue: defaultValue, min: min, max: max, stepSize: step):
 			viewData = TweakViewData(type: .double, value: stepperControl.value, defaultValue: defaultValue, minimum: min, maximum: max, stepSize: step, options: nil)
 			delegate?.tweakCellDidChangeCurrentValue(self)
-		case .color, .boolean, .action, .stringList, .string:
-			assertionFailure("Shouldn't be able to update text field with a Color/Boolean/Action/StringList/String tweak.")
+		case .color, .boolean, .action, .stringList, .string, .date:
+			assertionFailure("Shouldn't be able to update text field with a Color/Boolean/Action/StringList/String/Date tweak.")
+		}
+	}
+	
+	@objc private func datePickerDidChangeValue(_ datePicker: UIDatePicker) {
+		switch viewData! {
+		case let .date(_, defaultValue: defaultValue, min: min, max: max):
+			viewData = .date(value: datePicker.date, defaultValue: defaultValue, min: min, max: max)
+			delegate?.tweakCellDidChangeCurrentValue(self)
+		default:
+			assertionFailure("Shouldn't be able to use UIDatePicker if view data isn't Date type")
 		}
 	}
 }
@@ -451,8 +488,8 @@ extension TweakTableCell: UITextFieldDelegate {
 			} else {
 				updateSubviews()
 			}
-		case .boolean, .action, .stringList:
-			assertionFailure("Shouldn't be able to update text field with a Boolean/Action/StringList tweak.")
+		case .boolean, .action, .stringList, .date:
+			assertionFailure("Shouldn't be able to update text field with a Boolean/Action/StringList/Date tweak.")
 		}
 	}
 }

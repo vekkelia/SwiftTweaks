@@ -163,6 +163,10 @@ extension Tweak: TweakType {
 			return .action(
 				defaultValue: defaultValue as! TweakAction
 			)
+		case .date:
+			return .date(defaultValue: defaultValue as! Date,
+						 min: minimumValue as? Date,
+						 max: maximumValue as? Date)
 		}
 	}
 
