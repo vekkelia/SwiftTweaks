@@ -143,6 +143,9 @@ extension TweakCollectionViewController: UITableViewDelegate {
 			cell.startEditingTextField()
 		case .boolean:
 			break
+		case .date:
+			let datePickerVC = DatePickerViewController(anyTweak: tweak, tweakStore: tweakStore, delegate: self)
+			navigationController?.pushViewController(datePickerVC, animated: true)
 		}
 	}
     
@@ -212,6 +215,12 @@ extension TweakCollectionViewController: TweakColorEditViewControllerDelegate {
 
 extension TweakCollectionViewController: StringOptionViewControllerDelegate {
 	func stringOptionViewControllerDidPressDismissButton(_ tweakSelectionViewController: StringOptionViewController) {
+		self.delegate.tweakCollectionViewControllerDidPressDismissButton(self)
+	}
+}
+
+extension TweakCollectionViewController: DatePickerViewControllerDelegate {
+	func datePickerViewControllerDidPressDismissButton(_ tweakSelectionViewController: DatePickerViewController) {
 		self.delegate.tweakCollectionViewControllerDidPressDismissButton(self)
 	}
 }

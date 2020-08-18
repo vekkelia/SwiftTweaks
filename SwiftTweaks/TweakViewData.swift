@@ -18,6 +18,7 @@ internal enum TweakViewData {
 	case string(value: String, defaultValue: String)
 	case stringList(value: StringOption, defaultValue: StringOption, options: [StringOption])
 	case action(value: TweakAction)
+	case date(value: Date, defaultValue: Date, min: Date?, max: Date?)
 
 	init<T: TweakableType>(type: TweakViewDataType, value: T, defaultValue: T, minimum: T?, maximum: T?, stepSize: T?, options: [T]?) {
 		switch type {
@@ -40,6 +41,8 @@ internal enum TweakViewData {
 			self = .stringList(value: value as! StringOption, defaultValue: defaultValue as! StringOption, options: options!.map { $0 as! StringOption })
 		case .action:
 			self = .action(value: value as! TweakAction)
+		case .date:
+			self = .date(value: value as! Date, defaultValue: defaultValue as! Date, min: minimum as? Date, max: maximum as? Date)
 		}
 	}
 
@@ -61,13 +64,15 @@ internal enum TweakViewData {
 			return stringValue
 		case let .action(value: value):
 			return value
+		case let .date(value: dateValue, _, _, _):
+			return dateValue
 		}
 	}
 
 	/// For signedNumberType tweaks, this is a shortcut to `value` as a Double
 	var doubleValue: Double? {
 		switch self {
-		case .boolean, .color, .action, .string, .stringList:
+		case .boolean, .color, .action, .string, .stringList, .date:
 			return nil
 		case let .integer(value: intValue, _, _, _, _):
 			return Double(intValue)
@@ -106,6 +111,9 @@ internal enum TweakViewData {
 		case .action:
 			string = ""
 			differsFromDefault = false
+		case let .date(value: value, defaultValue: defaultValue, _, _):
+			string = TweakDateFormatter.dateFormatter().string(from: value)
+			differsFromDefault = value != defaultValue
 		}
 		return (string, differsFromDefault)
 	}
@@ -114,7 +122,7 @@ internal enum TweakViewData {
 		switch self {
 		case .integer, .float, .doubleTweak:
 			return true
-		case .boolean, .color, .action, .string, .stringList:
+		case .boolean, .color, .action, .string, .stringList, .date:
 			return false
 		}
 	}
@@ -154,7 +162,7 @@ internal enum TweakViewData {
 		let step: Double?
 		let isInteger: Bool
 		switch self {
-		case .boolean, .color, .action, .stringList, .string:
+		case .boolean, .color, .action, .stringList, .string, .date:
 			return nil
 
 		case let .integer(intValue, intDefaultValue, intMin, intMax, intStep):
@@ -229,5 +237,15 @@ internal enum TweakViewData {
 		resultStep = step ?? resultStep
 
 		return (resultMin, resultMax, resultStep)
+	}
+}
+
+struct TweakDateFormatter {
+	static func dateFormatter() -> DateFormatter {
+		let formatter = DateFormatter()
+		formatter.dateStyle = .short
+		formatter.timeStyle = .short
+		formatter.locale = Locale.current
+		return formatter
 	}
 }

@@ -162,6 +162,9 @@ public final class TweakStore {
 		case let .action(defaultValue: defaultValue):
 			let currentValue = cachedValue as? TweakAction ?? defaultValue
 			return .action(value: currentValue)
+		case let .date(defaultValue: defaultValue, min: min, max: max):
+			let currentValue = cachedValue as? Date ?? defaultValue
+			return .date(value: currentValue, defaultValue: defaultValue, min: min, max: max)
 		}
 	}
 	
